@@ -1710,7 +1710,7 @@ class PostgreSQL(DBInspector):
         self.domains = od((t.signature, t) for t in domains)
 
     def load_comments(self):
-        q = self.c.execute(self.COMMENTS_QUERY)
+        q = self.execute(self.COMMENTS_QUERY)
         comments = [
             InspectedComment(
                 i.object_type,
