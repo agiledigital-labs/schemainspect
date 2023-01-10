@@ -8,7 +8,7 @@ select
   end
   as provider,
   collencoding as encoding,
-  collcollate as lc_collate,
+  coalesce(collcollate,colliculocale) as lc_collate,
   collctype as lc_ctype,
   collversion as version
 from
