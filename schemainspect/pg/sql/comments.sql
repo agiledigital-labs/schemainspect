@@ -1,8 +1,6 @@
 SELECT
   CASE (d.iden).type
-    WHEN 'domain constraint' THEN 'constraint'
     WHEN 'table column' THEN 'column'
-    WHEN 'table constraint' THEN 'constraint'
     ELSE (d.iden).type::TEXT
   END AS object_type,
   (d.iden).identity AS identifier,
