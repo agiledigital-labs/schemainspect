@@ -997,6 +997,9 @@ class InspectedPrivilege(Inspected):
 
 class InspectedComment(Inspected):
     def __init__(self, object_type, identifier, comment):
+        # the identifier of domain constraint returned by pg_identify_object has no
+        # domain keyword, so we have to add it manually so that we can use the correct
+        # identifier in the create statement
         self.identifier = (
             identifier
             if object_type != "domain constraint"
