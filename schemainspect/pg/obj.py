@@ -997,8 +997,14 @@ class InspectedPrivilege(Inspected):
 
 class InspectedComment(Inspected):
     def __init__(self, object_type, identifier, comment):
-        self.identifier = identifier
-        self.object_type = object_type
+        self.identifier = (
+            identifier
+            if object_type != "domain constraint"
+            else self.domain_constraint_identifier(identifier)
+        )
+        self.object_type = (
+            object_type if object_type.endswith("constraint") is False else "constraint"
+        )
         self.comment = comment
 
     @property
@@ -1014,6 +1020,10 @@ class InspectedComment(Inspected):
     @property
     def key(self):
         return "{} {}".format(self.object_type, self.identifier)
+
+    def domain_constraint_identifier(self, identifier):
+        before_on, after_on = identifier.split(" on ")
+        return f"{before_on} on domain {after_on}"
 
     def __eq__(self, other):
         return (

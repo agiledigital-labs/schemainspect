@@ -258,6 +258,8 @@ def setup_pg_schema(s):
         grant select, update, delete, insert on table films to postgres;
     """
     )
+    s.execute("ALTER TABLE films ADD CONSTRAINT title_unique UNIQUE(title);")
+    s.execute("COMMENT ON CONSTRAINT title_unique on public.films IS 'title unique comment';")
     s.execute("""CREATE VIEW v_films AS (select * from films)""")
     s.execute("""CREATE VIEW v_films2 AS (select * from v_films)""")
     s.execute(
@@ -279,7 +281,9 @@ def setup_pg_schema(s):
             language sql;
         """
     )
-    s.execute("comment on function public.films_f(date, text, date) is 'films_f comment'")
+    s.execute(
+        "comment on function public.films_f(date, text, date) is 'films_f comment'"
+    )
     s.execute(
         """
         CREATE OR REPLACE FUNCTION inc_f(integer) RETURNS integer AS $$
@@ -329,6 +333,19 @@ def setup_pg_schema(s):
         """
             create table t_abc (id serial, x abc);
     """
+    )
+    s.execute(
+        """
+            CREATE DOMAIN us_postal_code AS TEXT CHECK(
+   VALUE ~ '^\d{5}$'
+OR VALUE ~ '^\d{5}-\d{4}$'
+);
+        """
+    )
+    s.execute(
+        """
+            comment on constraint us_postal_code_check on domain us_postal_code is 'us postal code comment';
+        """
     )
 
 
@@ -496,17 +513,30 @@ def asserts_pg(i, has_timescale=False):
         tid.change_string_to_enum_statement("t")
 
     # comments
-    assert len(i.comments) == 2
+    assert len(i.comments) == 4
     assert (
         i.comments[
-            'function public.films_f(pg_catalog.date,pg_catalog.text,pg_catalog.date)'
+            "function public.films_f(pg_catalog.date,pg_catalog.text,pg_catalog.date)"
         ].create_statement
-        == 'comment on function public.films_f(pg_catalog.date,pg_catalog.text,pg_catalog.date) is $cmt$films_f comment$cmt$;'
+        == "comment on function public.films_f(pg_catalog.date,pg_catalog.text,pg_catalog.date) is $cmt$films_f comment$cmt$;"
     )
     assert (
-        i.comments['table public.emptytable'].create_statement
-        == 'comment on table public.emptytable is $cmt$emptytable comment$cmt$;'
+        i.comments["table public.emptytable"].create_statement
+        == "comment on table public.emptytable is $cmt$emptytable comment$cmt$;"
     )
+    assert (
+        i.comments[
+            "constraint us_postal_code_check on domain public.us_postal_code"
+        ].create_statement
+        == "comment on constraint us_postal_code_check on domain public.us_postal_code is $cmt$us postal code comment$cmt$;"
+    )
+    assert (
+        i.comments[
+            "constraint title_unique on public.films"
+        ].create_statement
+        == "comment on constraint title_unique on public.films is $cmt$title unique comment$cmt$;"
+    )
+
 
 
 def test_weird_names(db):
